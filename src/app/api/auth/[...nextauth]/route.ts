@@ -42,24 +42,30 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({
           where: { email },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            password: true,
+          },
         });
 
         if (!user) {
-          throw new Error("No user found with this email");
+          throw new Error("No se encontró el usuario");
         }
         if (!user.password) {
-          throw new Error("No password set for this user");
+          throw new Error("La cuenta no tiene contraseña");
         }
 
         // Here you would normally check the password
         // For example, using bcrypt to compare hashed passwords
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-          throw new Error("Invalid password");
+          throw new Error("La contraseña es incorrecta");
         }
-        // If the password is valid, return the user object
-        const { ...userWithoutPassword } = user;
-        return userWithoutPassword;
+
+        return user;
       },
     }),
   ],
@@ -80,6 +86,8 @@ export const authOptions: NextAuthOptions = {
         id: token.sub as string,
         email: token.email as string,
         image: token.picture as string,
+        name: token.name as string,
+        emailVerified: token.email_verified as Date,
       };
       return session;
     },

@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import AppSessionProvider from "@/providers/app-session-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import AppSessionProvider from "@/providers/app-session-provider";
+import type { Metadata } from "next";
+import { Toaster } from "sonner";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,7 +22,10 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange>
-          <AppSessionProvider>{children}</AppSessionProvider>
+          <AppSessionProvider>
+            {children}
+            <Toaster />
+          </AppSessionProvider>
         </ThemeProvider>
       </body>
     </html>

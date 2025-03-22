@@ -1,8 +1,7 @@
+"use server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { db } from "@/lib/prisma";
 
 export async function getUserGroups() {
   const session = await getServerSession(authOptions);
@@ -11,7 +10,7 @@ export async function getUserGroups() {
     return [];
   }
 
-  const user = await prisma.user.findUnique({
+  const user = await db.user.findUnique({
     where: { email: session.user.email },
     include: { groups: { include: { group: true } } },
   });

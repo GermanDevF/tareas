@@ -40,10 +40,6 @@ export default function Page() {
             />
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink href="/">Home</BreadcrumbLink>
-                </BreadcrumbItem>
-
                 {pathSegments.map((segment, index) => {
                   const isLast = index === pathSegments.length - 1;
                   const href = "/" + pathSegments.slice(0, index + 1).join("/");

@@ -1,26 +1,29 @@
-import { z } from "zod";
+import { Group } from "@/@types";
 import {
-  Input,
-  DialogFooter,
   Button,
+  DialogFooter,
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
-  Textarea,
+  Input,
   Select,
-  SelectValue,
-  SelectTrigger,
-  SelectItem,
   SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Textarea,
 } from "@/components/ui";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import Icon from "../get-icon";
-import { useEffect, useState, useMemo } from "react";
 import { FixedSizeList as List } from "react-window";
+import { toast } from "sonner";
+import { z } from "zod";
+import Icon from "../get-icon";
 
 const groupSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -30,12 +33,30 @@ const groupSchema = z.object({
 
 type GroupFormValues = z.infer<typeof groupSchema>;
 
-export const GroupForm = () => {
-  const [icons, setIcons] = useState<string[]>([]);
-  const [loadingIcons, setLoadingIcons] = useState(true);
-  const [errorLoadingIcons, setErrorLoadingIcons] = useState<Error | null>(
-    null
+const fetchIcons = async (): Promise<string[]> => {
+  const response = await fetch("https://lucide.dev/api/tags");
+  if (!response.ok) throw new Error("Error al obtener iconos");
+  const data = await response.json();
+
+  // Convierte de kebab-case a PascalCase
+  return Object.keys(data).map((key) =>
+    key
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("")
   );
+};
+
+export const GroupForm = ({ onCreate }: { onCreate: (T: Group) => void }) => {
+  const {
+    data: icons,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["icons"],
+    queryFn: fetchIcons,
+  });
 
   const form = useForm<GroupFormValues>({
     resolver: zodResolver(groupSchema),
@@ -45,37 +66,6 @@ export const GroupForm = () => {
       description: "",
     },
   });
-
-  useEffect(() => {
-    const fetchIcons = async () => {
-      setLoadingIcons(true);
-      setErrorLoadingIcons(null);
-      try {
-        const response = await fetch("https://lucide.dev/api/tags");
-        if (!response.ok) {
-          throw new Error("Failed to fetch icons");
-        }
-        const data = await response.json();
-
-        // cambia el case de kebab a PascalCase
-        setIcons(
-          Object.keys(data).map((key) =>
-            key
-              .split("-")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join("")
-          )
-        );
-      } catch (err) {
-        setErrorLoadingIcons(
-          err instanceof Error ? err : new Error("Unknown error")
-        );
-      } finally {
-        setLoadingIcons(false);
-      }
-    };
-    fetchIcons();
-  }, []);
 
   const memoizedIcons = useMemo(() => icons, [icons]);
 
@@ -91,20 +81,20 @@ export const GroupForm = () => {
       if (!response.ok) {
         throw new Error("Error al crear el grupo");
       }
-      const group = response.json();
-      console.log("group", group);
+      const group = await response.json();
+      onCreate(group);
+      toast.success("Grupo creado con éxito");
     } catch (error) {
-      console.error("Error al crear el grupo:", error);
-      // Aquí puedes manejar el error, por ejemplo, mostrar un mensaje al usuario
+      toast.error("Error al crear el grupo");
     }
   }
 
-  if (loadingIcons) {
+  if (isLoading) {
     return <div>Cargando iconos...</div>; // Puedes usar un Skeleton aquí
   }
 
-  if (errorLoadingIcons) {
-    return <div>Error al cargar los iconos: {errorLoadingIcons.message}</div>;
+  if (isError) {
+    return <div>Error al cargar los iconos: {error.message}</div>;
   }
 
   const columns = 5; // Número de columnas en el grid
@@ -117,7 +107,8 @@ export const GroupForm = () => {
     index: number;
     style: React.CSSProperties;
   }) => {
-    const iconName = memoizedIcons[index];
+    const iconName = memoizedIcons?.[index] as string;
+    if (!iconName) return null;
     return (
       <div
         style={{
@@ -165,7 +156,7 @@ export const GroupForm = () => {
                 <SelectContent style={{ height: 200 }}>
                   <List
                     height={200}
-                    itemCount={memoizedIcons.length}
+                    itemCount={memoizedIcons?.length || 0}
                     itemSize={itemSize}
                     width="100%"
                     style={{

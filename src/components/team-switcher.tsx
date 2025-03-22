@@ -1,8 +1,10 @@
 "use client";
 
-import * as React from "react";
 import { ChevronsUpDown, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { Group } from "@/@types";
+import { getGroups } from "@/client/groups";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,45 +21,34 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
 import Icon from "./get-icon";
 import { CreateGroupDialog } from "./groups/create-gruop-dialog";
 
-interface GroupWithIcon {
-  id: string;
-  name: string;
-  icon: string;
-}
-
 export function TeamSwitcher() {
-  const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] =
-    React.useState(false);
-  const [loading, setLoading] = React.useState(true); // Nuevo estado para la carga
-  const [teams, setTeams] = React.useState<GroupWithIcon[]>([]);
-  const [activeTeam, setActiveTeam] = React.useState<GroupWithIcon | null>(
-    null
-  );
+  const {
+    data: teams = [],
+    isLoading,
+    refetch,
+  } = useQuery<Group[]>({
+    queryKey: ["groups"],
+    queryFn: getGroups,
+    placeholderData: [],
+  });
 
-  React.useEffect(() => {
-    async function fetchGroups() {
-      try {
-        const response = await fetch("/api/groups");
-        const groups = await response.json();
-        setTeams(groups);
-        if (groups.length > 0) {
-          setActiveTeam(groups[0]);
-        }
-      } catch (error) {
-        console.error("Error fetching groups:", error);
-      } finally {
-        setLoading(false); // La carga ha terminado
-      }
-    }
-    fetchGroups();
-  }, []);
+  const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] = useState(false);
+
+  const [activeTeam, setActiveTeam] = useState<Group | null>(null);
 
   const { isMobile } = useSidebar();
 
-  if (loading) {
+  useEffect(() => {
+    if (teams.length > 0 && !activeTeam) {
+      setActiveTeam(teams[0]);
+    }
+  }, [teams, activeTeam]);
+
+  if (isLoading) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -135,6 +126,11 @@ export function TeamSwitcher() {
         <CreateGroupDialog
           open={isCreateGroupDialogOpen}
           onOpenChange={setIsCreateGroupDialogOpen}
+          callback={(group) => {
+            setActiveTeam(group);
+            setIsCreateGroupDialogOpen(false);
+            refetch();
+          }}
         />
       </SidebarMenuItem>
     </SidebarMenu>
