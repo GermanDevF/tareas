@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { signOut } from "next-auth/react";
+import { Skeleton } from "@/components/ui/skeleton"; // Importa el componente Skeleton
 
 interface NavUserProps {
   user: {
@@ -30,6 +32,22 @@ interface NavUserProps {
 
 export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar();
+
+  if (!user.name && !user.email && !user.image) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <div className="grid flex-1 gap-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
     <SidebarMenu>
@@ -74,7 +92,7 @@ export function NavUser({ user }: NavUserProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })}>
               <LogOut />
-              Log out
+              Cerrar sessión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

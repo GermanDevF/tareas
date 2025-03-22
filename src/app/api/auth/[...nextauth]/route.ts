@@ -1,14 +1,10 @@
-import NextAuth, { NextAuthOptions, Session } from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import Google from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-
-interface CustomSession extends Session {
-  accessToken?: string;
-}
 
 interface CustomJWT extends JWT {
   accessToken?: string;
@@ -62,7 +58,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Invalid password");
         }
         // If the password is valid, return the user object
-        return user;
+        const { ...userWithoutPassword } = user;
+        return userWithoutPassword;
       },
     }),
   ],
@@ -76,14 +73,14 @@ export const authOptions: NextAuthOptions = {
       }
       return token as CustomJWT;
     },
-    async session({
-      session,
-      token,
-    }: {
-      session: CustomSession;
-      token: CustomJWT;
-    }) {
-      session.accessToken = token.accessToken;
+    async session({ session, token }) {
+      session.accessToken = token.accessToken as string;
+      session.user = {
+        ...session.user,
+        id: token.sub as string,
+        email: token.email as string,
+        image: token.picture as string,
+      };
       return session;
     },
     async signIn({ user, account }) {
@@ -103,8 +100,26 @@ export const authOptions: NextAuthOptions = {
               name: user.name,
               email: user.email,
               image: user.image,
+              password: null,
+              emailVerified: null,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+              password: true,
+              emailVerified: true,
+              createdAt: true,
+              updatedAt: true,
             },
           });
+        }
+
+        if (!existingUser) {
+          throw new Error("User creation failed");
         }
 
         const userGroups = await prisma.groupUser.findMany({

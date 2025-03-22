@@ -18,7 +18,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import Icon from "./get-icon"; // Importa el componente Icon
+import { Skeleton } from "@/components/ui/skeleton";
+import Icon from "./get-icon";
+import { CreateGroupDialog } from "./groups/create-gruop-dialog";
 
 interface GroupWithIcon {
   id: string;
@@ -27,6 +29,9 @@ interface GroupWithIcon {
 }
 
 export function TeamSwitcher() {
+  const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] =
+    React.useState(false);
+  const [loading, setLoading] = React.useState(true); // Nuevo estado para la carga
   const [teams, setTeams] = React.useState<GroupWithIcon[]>([]);
   const [activeTeam, setActiveTeam] = React.useState<GroupWithIcon | null>(
     null
@@ -43,12 +48,30 @@ export function TeamSwitcher() {
         }
       } catch (error) {
         console.error("Error fetching groups:", error);
+      } finally {
+        setLoading(false); // La carga ha terminado
       }
     }
     fetchGroups();
   }, []);
 
   const { isMobile } = useSidebar();
+
+  if (loading) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <div className="flex gap-2">
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <div className="grid flex-1 gap-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </div>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
     <SidebarMenu>
@@ -97,7 +120,9 @@ export function TeamSwitcher() {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 p-2">
+            <DropdownMenuItem
+              className="gap-2 p-2"
+              onClick={() => setIsCreateGroupDialogOpen(true)}>
               <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                 <Plus className="size-4" />
               </div>
@@ -107,6 +132,10 @@ export function TeamSwitcher() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <CreateGroupDialog
+          open={isCreateGroupDialogOpen}
+          onOpenChange={setIsCreateGroupDialogOpen}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
   );

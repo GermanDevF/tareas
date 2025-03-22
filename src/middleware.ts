@@ -6,7 +6,6 @@ export default withAuth(
     const c = req.cookies;
     const nextauth = c.get("next-auth.session-token");
     const token = c.get("next-auth.csrf-token");
-    console.log(token);
 
     if (req.nextUrl.pathname.startsWith("/dashboard") && !token) {
       const url = req.nextUrl.clone();
