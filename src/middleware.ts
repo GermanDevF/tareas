@@ -5,9 +5,15 @@ export default withAuth(
   function middleware(req) {
     const c = req.cookies;
     const nextauth = c.get("next-auth.session-token");
-    console.log({
-      ...req.cookies,
-    });
+    const token = c.get("next-auth.csrf-token");
+    console.log(token);
+
+    if (req.nextUrl.pathname.startsWith("/dashboard") && !token) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      url.search = "?error=unauthorized";
+      return NextResponse.redirect(url);
+    }
 
     if (!nextauth) {
       return NextResponse.redirect(new URL("/login", req.url));

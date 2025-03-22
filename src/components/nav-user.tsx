@@ -20,15 +20,15 @@ import {
 
 import { signOut } from "next-auth/react";
 
-export function NavUser({
-  user,
-}: {
+interface NavUserProps {
   user: {
     name?: string;
     email?: string;
     image?: string;
   };
-}) {
+}
+
+export function NavUser({ user }: NavUserProps) {
   const { isMobile } = useSidebar();
 
   return (
