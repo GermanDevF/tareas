@@ -1,9 +1,8 @@
 "use client";
 
-import { ChevronsUpDown, Plus } from "lucide-react";
+import { ChevronsUpDown, Edit, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Group } from "@/@types";
 import { getGroups } from "@/client/groups";
 import {
   DropdownMenu,
@@ -11,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -21,24 +19,27 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Group } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import Icon from "./get-icon";
 import { CreateGroupDialog } from "./groups/create-gruop-dialog";
+import { Button } from "./ui";
 
 export function TeamSwitcher() {
-  const {
-    data: teams = [],
-    isLoading,
-    refetch,
-  } = useQuery<Group[]>({
+  const { data: teams = [], isLoading } = useQuery<Group[]>({
     queryKey: ["groups"],
     queryFn: getGroups,
     placeholderData: [],
   });
 
+  const { data: session } = useSession();
+
   const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] = useState(false);
 
   const [activeTeam, setActiveTeam] = useState<Group | null>(null);
+
+  const [groupToEdit, setGroupToEdit] = useState<Group | null>(null);
 
   const { isMobile } = useSidebar();
 
@@ -107,13 +108,26 @@ export function TeamSwitcher() {
                   <Icon iconName={team?.icon || "Users"} className="size-4" />
                 </div>
                 {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                {team.ownerId === session?.user.id && (
+                  <Button
+                    variant="ghost"
+                    className="ml-auto rounded-full text-muted-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-transparent"
+                    onClick={(e) => {
+                      setGroupToEdit(team);
+                      setIsCreateGroupDialogOpen(true);
+                    }}>
+                    <Edit className="ml-auto size-4 text-muted-foreground" />
+                  </Button>
+                )}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="gap-2 p-2"
-              onClick={() => setIsCreateGroupDialogOpen(true)}>
+              onClick={() => {
+                setGroupToEdit(null);
+                setIsCreateGroupDialogOpen(true);
+              }}>
               <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
                 <Plus className="size-4" />
               </div>
@@ -126,10 +140,10 @@ export function TeamSwitcher() {
         <CreateGroupDialog
           open={isCreateGroupDialogOpen}
           onOpenChange={setIsCreateGroupDialogOpen}
-          callback={(group) => {
-            setActiveTeam(group);
+          group={groupToEdit} // Pasar grupo a editar
+          callback={(newGroup) => {
+            setActiveTeam(newGroup as Group);
             setIsCreateGroupDialogOpen(false);
-            refetch();
           }}
         />
       </SidebarMenuItem>

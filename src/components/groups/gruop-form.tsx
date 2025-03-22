@@ -1,4 +1,3 @@
-import { Group } from "@/@types";
 import {
   Button,
   DialogFooter,
@@ -16,7 +15,9 @@ import {
   SelectValue,
   Textarea,
 } from "@/components/ui";
+import { useCreateGroup, useDeleteGroup, useUpdateGroup } from "@/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Group } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -28,7 +29,7 @@ import Icon from "../get-icon";
 const groupSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   icon: z.string().min(1, "El icono es requerido"),
-  description: z.string().optional(),
+  description: z.string().nullable(),
 });
 
 type GroupFormValues = z.infer<typeof groupSchema>;
@@ -47,7 +48,31 @@ const fetchIcons = async (): Promise<string[]> => {
   );
 };
 
-export const GroupForm = ({ onCreate }: { onCreate: (T: Group) => void }) => {
+interface GroupFormProps {
+  onCreate: (group: Omit<Group, "ownerId" | "createdAt" | "updatedAt">) => void;
+  group?: Group | null;
+}
+
+const INITIAL_STATE_GROUP = {
+  name: "",
+  icon: "",
+  description: "",
+};
+
+export const GroupForm = ({ onCreate, group }: GroupFormProps) => {
+  const defaultValues = group
+    ? {
+        name: group.name,
+        icon: group.icon || "",
+        description: group.description || "",
+      }
+    : INITIAL_STATE_GROUP;
+
+  const form = useForm<GroupFormValues>({
+    resolver: zodResolver(groupSchema),
+    defaultValues,
+  });
+
   const {
     data: icons,
     isLoading,
@@ -58,32 +83,36 @@ export const GroupForm = ({ onCreate }: { onCreate: (T: Group) => void }) => {
     queryFn: fetchIcons,
   });
 
-  const form = useForm<GroupFormValues>({
-    resolver: zodResolver(groupSchema),
-    defaultValues: {
-      name: "",
-      icon: "",
-      description: "",
-    },
-  });
+  const { mutate: createGroup } = useCreateGroup();
+  const { mutate: updateGroup } = useUpdateGroup();
+  const { mutate: deleteGroup } = useDeleteGroup();
 
   const memoizedIcons = useMemo(() => icons, [icons]);
 
-  async function onSubmit(data: GroupFormValues) {
+  async function onSubmit(
+    data: GroupFormValues & { description: string | null }
+  ) {
     try {
-      const response = await fetch("/api/groups", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error("Error al crear el grupo");
+      const groupName = data.name
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+
+      const grupo = {
+        ...group,
+        id: group?.id ?? "",
+        name: groupName,
+        icon: data.icon,
+        description: data.description ?? null,
+        // createdAt: group?.createdAt ?? new Date(),
+        // updatedAt: new Date(),
+      };
+      if (!group) {
+        createGroup(grupo);
+      } else {
+        updateGroup(grupo);
       }
-      const group = await response.json();
-      onCreate(group);
-      toast.success("Grupo creado con éxito");
+      onCreate(grupo);
     } catch (error) {
       toast.error("Error al crear el grupo");
     }
@@ -149,8 +178,12 @@ export const GroupForm = ({ onCreate }: { onCreate: (T: Group) => void }) => {
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <Icon iconName={field.value} className="size-6" />
-                    <SelectValue placeholder="Selecciona un icono" />
+                    {field.value && (
+                      <Icon iconName={field.value} className="size-6" />
+                    )}
+                    {!field.value && (
+                      <SelectValue placeholder="Selecciona un icono" />
+                    )}
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent style={{ height: 200 }}>
@@ -183,6 +216,7 @@ export const GroupForm = ({ onCreate }: { onCreate: (T: Group) => void }) => {
                   placeholder="Descripción del grupo"
                   className="resize-none"
                   {...field}
+                  value={field.value ?? ""}
                 />
               </FormControl>
               <FormMessage />
@@ -190,7 +224,21 @@ export const GroupForm = ({ onCreate }: { onCreate: (T: Group) => void }) => {
           )}
         />
         <DialogFooter>
-          <Button type="submit">Crear</Button>
+          {group && (
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                deleteGroup(group.id);
+              }}>
+              Eliminar
+              <Icon iconName="Trash" className="size-4" />
+            </Button>
+          )}
+          <Button type="submit">
+            Guardar
+            <Icon iconName="Save" className="size-4" />
+          </Button>
         </DialogFooter>
       </form>
     </Form>
