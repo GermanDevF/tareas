@@ -49,7 +49,7 @@ const fetchIcons = async (): Promise<string[]> => {
 };
 
 interface GroupFormProps {
-  onCreate: (group: Omit<Group, "ownerId" | "createdAt" | "updatedAt">) => void;
+  callback: (group: Omit<Group, "ownerId" | "createdAt" | "updatedAt">) => void;
   group?: Group | null;
 }
 
@@ -59,7 +59,7 @@ const INITIAL_STATE_GROUP = {
   description: "",
 };
 
-export const GroupForm = ({ onCreate, group }: GroupFormProps) => {
+export const GroupForm = ({ callback, group }: GroupFormProps) => {
   const defaultValues = group
     ? {
         name: group.name,
@@ -112,7 +112,7 @@ export const GroupForm = ({ onCreate, group }: GroupFormProps) => {
       } else {
         updateGroup(grupo);
       }
-      onCreate(grupo);
+      callback(grupo);
     } catch (error) {
       toast.error("Error al crear el grupo");
     }
@@ -230,6 +230,7 @@ export const GroupForm = ({ onCreate, group }: GroupFormProps) => {
               variant="destructive"
               onClick={() => {
                 deleteGroup(group.id);
+                callback(group);
               }}>
               Eliminar
               <Icon iconName="Trash" className="size-4" />

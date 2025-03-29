@@ -18,7 +18,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Group } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -27,7 +26,7 @@ import { CreateGroupDialog } from "./groups/create-gruop-dialog";
 import { Button } from "./ui";
 
 export function TeamSwitcher() {
-  const { data: teams = [], isLoading } = useQuery<Group[]>({
+  const { data: teams = [] } = useQuery<Group[]>({
     queryKey: ["groups"],
     queryFn: getGroups,
     placeholderData: [],
@@ -48,22 +47,6 @@ export function TeamSwitcher() {
       setActiveTeam(teams[0]);
     }
   }, [teams, activeTeam]);
-
-  if (isLoading) {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-8 rounded-md" />
-            <div className="grid flex-1 gap-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-            </div>
-          </div>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
 
   return (
     <SidebarMenu>
@@ -144,6 +127,9 @@ export function TeamSwitcher() {
           callback={(newGroup) => {
             setActiveTeam(newGroup as Group);
             setIsCreateGroupDialogOpen(false);
+            setTimeout(() => {
+              console.log(teams.find((team) => team.id === newGroup.id));
+            });
           }}
         />
       </SidebarMenuItem>

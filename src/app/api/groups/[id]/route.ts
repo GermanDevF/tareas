@@ -27,15 +27,17 @@ const uptadteGroup = async (req: NextRequest, userId: string) => {
   }
 };
 
-const deleteGroup = async (req: NextRequest, userId: string) => {
+const deleteGroup = async (req: NextRequest) => {
   try {
-    const { id } = await req.json();
-    const group = await db.group.delete({
+    const id = req.url.split("/").pop() || "";
+    console.log({ id });
+
+    await db.group.deleteMany({
       where: {
         id: id as string,
       },
     });
-    return NextResponse.json(group, { status: 201 });
+    return NextResponse.json({}, { status: 204 });
   } catch (error) {
     console.error("Error creating group:", error);
     return NextResponse.json(
@@ -63,6 +65,5 @@ export const DELETE = async (req: NextRequest) => {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = session.user.id;
-  return deleteGroup(req, userId);
+  return deleteGroup(req);
 };

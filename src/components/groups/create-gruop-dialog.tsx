@@ -32,7 +32,7 @@ export function CreateGroupDialog({
             Ingrese los detalles del nuevo grupo.
           </DialogDescription>
         </DialogHeader>
-        <GroupForm onCreate={callback} group={group} />
+        <GroupForm callback={callback} group={group} />
       </DialogContent>
     </Dialog>
   );
