@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Bot, Settings2, SquareTerminal } from "lucide-react";
+import { Bot, List, ListChecks, SquareTerminal } from "lucide-react";
 import React, { Suspense } from "react";
 
 import { NavProjects } from "@/components/nav-projects";
@@ -25,108 +25,34 @@ const TeamSwitcher = React.lazy(() =>
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
-  // This is sample data.
-  const data = {
-    navMain: [
-      {
-        title: "Playground",
-        url: "#",
-        icon: SquareTerminal,
-        isActive: true,
-        items: [
-          {
-            title: "History",
-            url: "#",
-          },
-          {
-            title: "Starred",
-            url: "#",
-          },
-          {
-            title: "Settings",
-            url: "#",
-          },
-        ],
-      },
-      {
-        title: "Models",
-        url: "#",
-        icon: Bot,
-        items: [
-          {
-            title: "Genesis",
-            url: "#",
-          },
-          {
-            title: "Explorer",
-            url: "#",
-          },
-          {
-            title: "Quantum",
-            url: "#",
-          },
-        ],
-      },
-      {
-        title: "Documentation",
-        url: "#",
-        icon: BookOpen,
-        items: [
-          {
-            title: "Introduction",
-            url: "#",
-          },
-          {
-            title: "Get Started",
-            url: "#",
-          },
-          {
-            title: "Tutorials",
-            url: "#",
-          },
-          {
-            title: "Changelog",
-            url: "#",
-          },
-        ],
-      },
-      {
-        title: "Settings",
-        url: "#",
-        icon: Settings2,
-        items: [
-          {
-            title: "General",
-            url: "#",
-          },
-          {
-            title: "Team",
-            url: "#",
-          },
-          {
-            title: "Billing",
-            url: "#",
-          },
-          {
-            title: "Limits",
-            url: "#",
-          },
-        ],
-      },
-    ],
-    projects: [
-      {
-        name: "Dashboard",
-        url: "/dashboard",
-        icon: SquareTerminal,
-      },
-      {
-        name: "Grupos",
-        url: "/groups",
-        icon: Bot, // Puedes cambiar el icono si quieres otro
-      },
-    ],
-  };
+
+  const routes = [
+    {
+      name: "Dashboard",
+      url: "/dashboard",
+      icon: SquareTerminal,
+      isActive: true,
+    },
+    {
+      name: "Grupos",
+      url: "/groups",
+      icon: Bot,
+      isActive: false,
+    },
+    {
+      name: "Catalogos",
+      url: "/catalogos",
+      icon: List,
+      isActive: false,
+      children: [
+        {
+          name: "Tipos de tarea",
+          url: "/catalogos/tipos-de-tarea",
+          icon: ListChecks,
+        },
+      ],
+    },
+  ];
 
   return (
     <Sidebar collapsible="icon" {...props} variant="inset">
@@ -145,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </Suspense>
       </SidebarHeader>
       <SidebarContent>
-        <NavProjects projects={data.projects} />
+        <NavProjects items={routes} />
       </SidebarContent>
       <SidebarFooter>
         <React.Suspense

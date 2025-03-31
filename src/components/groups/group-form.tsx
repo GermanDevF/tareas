@@ -1,3 +1,4 @@
+"use client";
 import {
   Button,
   DialogFooter,
@@ -19,6 +20,7 @@ import { useCreateGroup, useDeleteGroup, useUpdateGroup } from "@/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Group } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { FixedSizeList as List } from "react-window";
@@ -60,6 +62,7 @@ const INITIAL_STATE_GROUP = {
 };
 
 export const GroupForm = ({ callback, group }: GroupFormProps) => {
+  const pathname = usePathname();
   const defaultValues = group
     ? {
         name: group.name,
@@ -89,6 +92,8 @@ export const GroupForm = ({ callback, group }: GroupFormProps) => {
 
   const memoizedIcons = useMemo(() => icons, [icons]);
 
+  console.log(pathname);
+
   async function onSubmit(
     data: GroupFormValues & { description: string | null }
   ) {
@@ -97,6 +102,10 @@ export const GroupForm = ({ callback, group }: GroupFormProps) => {
         .split(" ")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
+
+      // if () {
+
+      // }
 
       const grupo = {
         ...group,

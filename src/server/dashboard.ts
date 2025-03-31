@@ -1,4 +1,5 @@
 import { db } from "@/lib/prisma";
+import { Task } from "@prisma/client";
 
 export async function getDashboardData(userId: string) {
   const user = await db.user.findUnique({
@@ -31,10 +32,10 @@ export async function getDashboardData(userId: string) {
       name: group.name,
       icon: group.icon,
     })),
-    tasks: user.tasks.map((task: any) => ({
+    tasks: user.tasks.map((task: Task) => ({
       id: task.id,
       title: task.title,
-      groupName: task.group?.name || "Sin grupo",
+      groupName: groups.find((group) => group.id === task.groupId)?.name,
     })),
   };
 }

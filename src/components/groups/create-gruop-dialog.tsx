@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Group } from "@prisma/client";
-import { GroupForm } from "./gruop-form";
+import { GroupForm } from "./group-form";
 
 interface CreateGroupDialogProps {
   open: boolean;
@@ -25,7 +25,9 @@ export function CreateGroupDialog({
 }: CreateGroupDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        className="sm:max-w-[425px]"
+        aria-describedby="dialog-description">
         <DialogHeader>
           <DialogTitle>Crear nuevo grupo</DialogTitle>
           <DialogDescription>

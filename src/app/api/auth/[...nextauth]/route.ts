@@ -1,10 +1,10 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
-import { JWT } from "next-auth/jwt";
-import Google from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import NextAuth, { NextAuthOptions } from "next-auth";
+import { JWT } from "next-auth/jwt";
+import CredentialsProvider from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 
 interface CustomJWT extends JWT {
   accessToken?: string;

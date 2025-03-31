@@ -12,9 +12,21 @@ async function getGroups(userId: string) {
         OR: [{ ownerId: userId }, { users: { some: { userId: userId } } }],
       },
       include: {
-        users: true,
+        _count: {
+          select: {
+            users: true,
+            tasks: true,
+          },
+        },
+        tasks: {
+          take: 5,
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
       },
     });
+
     return NextResponse.json(groups, { status: 200 });
   } catch (error) {
     console.error("Error fetching groups:", error);

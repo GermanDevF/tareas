@@ -17,6 +17,20 @@ export async function GET(req: Request) {
       where: {
         OR: [{ ownerId: userId }, { users: { some: { userId: userId } } }],
       },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            tasks: true,
+          },
+        },
+        tasks: {
+          take: 5,
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
     });
 
     return NextResponse.json(groups, { status: 200 });

@@ -8,25 +8,34 @@ datasource db {
 }
 
 model User {
-  id            String      @id @default(uuid())
-  email         String      @unique
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email         String    @unique
   password      String?
   name          String?
   image         String?
   emailVerified DateTime?
+  isAdmin       Boolean   @default(false)
+
   groups        GroupUser[]
-  ownedGroups   Group[]     @relation("GroupOwner")
+  ownedGroups   Group[]       @relation("GroupOwner")
   tasks         Task[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
   accounts      Account[]
   sessions      Session[]
+  lideres       Lider[]
+  programadores Programador[]
+  TaskComment   TaskComment[]
 
   @@map("users")
 }
 
 model Account {
-  id                       String  @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   userId                   String
   type                     String
   provider                 String
@@ -38,58 +47,65 @@ model Account {
   scope                    String?
   id_token                 String? @db.Text
   session_state            String?
-  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   refresh_token_expires_in Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
 model Session {
-  id           String   @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
   userId       String
   expires      DateTime
   sessionToken String   @unique
   accessToken  String   @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
 
   @@map("sessions")
 }
 
 model VerificationRequest {
-  id         String   @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   identifier String
   token      String   @unique
   expires    DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 
   @@unique([identifier, token])
 }
 
 model Group {
-  id          String      @id @default(uuid())
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   name        String
   icon        String?
   description String?
   ownerId     String
-  users       GroupUser[]
-  owner       User        @relation(fields: [ownerId], references: [id], name: "GroupOwner")
-  tasks       Task[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+
+  users GroupUser[]
+  owner User        @relation(fields: [ownerId], references: [id], name: "GroupOwner")
+  tasks Task[]
 
   @@map("groups")
 }
 
 model GroupUser {
   id        String   @id @default(uuid())
-  userId    String
-  groupId   String
-  user      User     @relation(fields: [userId], references: [id])
-  group     Group    @relation(fields: [groupId], references: [id])
   createdAt DateTime @default(now())
+
+  userId  String
+  groupId String
+
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
 
   @@unique([userId, groupId])
   @@map("group_users")
@@ -97,16 +113,123 @@ model GroupUser {
 
 model Task {
   id        String   @id @default(uuid())
-  title     String
-  content   String?
-  userId    String
-  groupId   String?
-  user      User     @relation(fields: [userId], references: [id])
-  group     Group?   @relation(fields: [groupId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  title         String
+  validado      Boolean?  @default(false)
+  content       String?
+  userId        String
+  groupId       String?
+  claveZoho     String?
+  branch        String?
+  linkPr        String?
+  typeId        String?
+  estadoId      String?
+  startDate     DateTime?
+  endDate       DateTime?
+  devDate       DateTime?
+  prodDate      DateTime?
+  liderId       String
+  programadorId String
+  ambienteId    String
+  projectId     String?
+
+  user        User          @relation(fields: [userId], references: [id])
+  group       Group?        @relation(fields: [groupId], references: [id])
+  estado      Estado?       @relation(fields: [estadoId], references: [id])
+  type        TipoDeTarea?  @relation(fields: [typeId], references: [id])
+  lideres     Lider         @relation(fields: [liderId], references: [id])
+  programador Programador   @relation(fields: [programadorId], references: [id])
+  ambiente    Ambiente      @relation(fields: [ambienteId], references: [id])
+  proyecto    Proyecto?     @relation(fields: [projectId], references: [id])
+  comments    TaskComment[]
 
   @@index([userId])
   @@index([groupId])
   @@map("tasks")
+}
+
+model Ambiente {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String
+
+  Task Task[]
+
+  @@map("ambientes")
+}
+
+model Estado {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String
+
+  tasks Task[]
+
+  @@map("estados")
+}
+
+model Proyecto {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name String
+
+  tasks Task[]
+
+  @@map("proyectos")
+}
+
+model Lider {
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User   @relation(fields: [userId], references: [id])
+  Task Task[]
+
+  @@map("lideres")
+}
+
+model Programador {
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User   @relation(fields: [userId], references: [id])
+  Task Task[]
+
+  @@map("programadores")
+}
+
+model TipoDeTarea {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Task      Task[]
+
+  @@map("tipos_de_tarea")
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("task_comments")
 }

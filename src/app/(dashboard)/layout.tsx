@@ -1,32 +1,14 @@
-"use client";
+import { CustomBreadcrumbs } from "@/components";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ModeToggle } from "@/components/mode-toggle";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { usePathname } from "next/navigation";
-
-function formatSegment(segment: string) {
-  return segment
-    .replace(/-/g, " ") // Reemplaza guiones con espacios
-    .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitaliza cada palabra
-}
 
 export default function Page({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const pathSegments = pathname.split("/").filter(Boolean);
-
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -38,31 +20,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
-            <Breadcrumb>
-              <BreadcrumbList>
-                {pathSegments.map((segment, index) => {
-                  const isLast = index === pathSegments.length - 1;
-                  const href = "/" + pathSegments.slice(0, index + 1).join("/");
-
-                  return (
-                    <div key={href} className="flex items-center">
-                      <BreadcrumbSeparator />
-                      <BreadcrumbItem>
-                        {isLast ? (
-                          <BreadcrumbPage>
-                            {formatSegment(segment)}
-                          </BreadcrumbPage>
-                        ) : (
-                          <BreadcrumbLink href={href}>
-                            {formatSegment(segment)}
-                          </BreadcrumbLink>
-                        )}
-                      </BreadcrumbItem>
-                    </div>
-                  );
-                })}
-              </BreadcrumbList>
-            </Breadcrumb>
+            <CustomBreadcrumbs />
           </div>
           <ModeToggle />
         </header>

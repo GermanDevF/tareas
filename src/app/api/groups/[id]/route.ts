@@ -30,8 +30,6 @@ const uptadteGroup = async (req: NextRequest, userId: string) => {
 const deleteGroup = async (req: NextRequest) => {
   try {
     const id = req.url.split("/").pop() || "";
-    console.log({ id });
-
     await db.group.deleteMany({
       where: {
         id: id as string,

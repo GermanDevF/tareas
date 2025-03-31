@@ -96,6 +96,7 @@ export function TeamSwitcher() {
                     variant="ghost"
                     className="ml-auto rounded-full text-muted-foreground hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-transparent"
                     onClick={(e) => {
+                      e.stopPropagation();
                       setGroupToEdit(team);
                       setIsCreateGroupDialogOpen(true);
                     }}>
@@ -127,9 +128,6 @@ export function TeamSwitcher() {
           callback={(newGroup) => {
             setActiveTeam(newGroup as Group);
             setIsCreateGroupDialogOpen(false);
-            setTimeout(() => {
-              console.log(teams.find((team) => team.id === newGroup.id));
-            });
           }}
         />
       </SidebarMenuItem>
