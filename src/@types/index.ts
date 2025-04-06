@@ -15,3 +15,11 @@ declare module "next-auth" {
     } & Omit<User, "password" | "createdAt" | "updatedAt">;
   }
 }
+
+export * from "./ambiente";
+export * from "./common";
+export * from "./estado";
+export * from "./lider";
+export * from "./proyecto";
+export * from "./tarea";
+export * from "./tipo-tarea";

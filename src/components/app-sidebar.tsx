@@ -1,10 +1,21 @@
 "use client";
 
-import { Bot, List, ListChecks, SquareTerminal } from "lucide-react";
-import React, { Suspense } from "react";
+import {
+  Bot,
+  BrainCircuit,
+  Crown,
+  List,
+  ListChecks,
+  MapPin,
+  PanelsTopLeft,
+  SquareTerminal,
+  TentTree,
+} from "lucide-react";
+import React, { Suspense, lazy } from "react";
 
 import { NavProjects } from "@/components/nav-projects";
 // import { TeamSwitcher } from "@/components/team-switcher";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
 import {
   Sidebar,
   SidebarContent,
@@ -13,17 +24,20 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useSession } from "next-auth/react";
-import { Skeleton } from "./ui/skeleton";
-const NavUser = React.lazy(() =>
+
+const NavUser = lazy(() =>
   import("@/components/nav-user").then((mod) => ({ default: mod.NavUser }))
 );
-const TeamSwitcher = React.lazy(() =>
+
+const TeamSwitcher = lazy(() =>
   import("@/components/team-switcher").then((mod) => ({
     default: mod.TeamSwitcher,
   }))
 );
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
+
+export function AppSidebar({ ...props }: AppSidebarProps) {
   const { data: session } = useSession();
 
   const routes = [
@@ -50,6 +64,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/catalogos/tipos-de-tarea",
           icon: ListChecks,
         },
+        {
+          name: "Ambientes",
+          url: "/catalogos/ambientes",
+          icon: TentTree,
+        },
+        {
+          name: "Estados",
+          url: "/catalogos/estados",
+          icon: MapPin,
+        },
+        {
+          name: "Proyectos",
+          url: "/catalogos/proyectos",
+          icon: PanelsTopLeft,
+        },
+        {
+          name: "Lideres",
+          url: "/catalogos/lideres",
+          icon: Crown,
+        },
+        {
+          name: "Desarrolladores",
+          url: "/catalogos/desarrolladores",
+          icon: BrainCircuit,
+        },
       ],
     },
   ];
@@ -57,16 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props} variant="inset">
       <SidebarHeader>
-        <Suspense
-          fallback={
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-            </div>
-          }>
+        <Suspense fallback={<LoadingSkeleton />}>
           <TeamSwitcher />
         </Suspense>
       </SidebarHeader>
@@ -74,24 +104,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects items={routes} />
       </SidebarContent>
       <SidebarFooter>
-        <React.Suspense
-          fallback={
-            <div className="flex items-center space-x-4">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-              </div>
-            </div>
-          }>
-          <NavUser
-            user={{
-              name: session?.user?.name ?? undefined,
-              email: session?.user?.email ?? undefined,
-              image: session?.user?.image ?? undefined,
-            }}
-          />
-        </React.Suspense>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <NavUser />
+        </Suspense>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

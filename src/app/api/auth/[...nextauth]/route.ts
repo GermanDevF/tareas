@@ -16,6 +16,85 @@ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
 
 const prisma = new PrismaClient();
 
+// Funciones auxiliares
+const createUserGroup = async (userId: string, userName: string | null) => {
+  const newGroup = await prisma.group.create({
+    data: {
+      name: `Sala de ${userName || "User"}`,
+      ownerId: userId,
+    },
+  });
+
+  await prisma.groupUser.create({
+    data: {
+      userId,
+      groupId: newGroup.id,
+    },
+  });
+};
+
+const createNewUser = async (userData: {
+  name: string | null;
+  email: string;
+  image: string | null;
+}) => {
+  return await prisma.user.create({
+    data: {
+      name: userData.name,
+      email: userData.email,
+      image: userData.image,
+      password: null,
+      emailVerified: null,
+      isAdmin: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      password: true,
+      emailVerified: true,
+      createdAt: true,
+      updatedAt: true,
+      isAdmin: true,
+    },
+  });
+};
+
+const handleGoogleSignIn = async (user: any) => {
+  if (!user.email) {
+    throw new Error("Email is required");
+  }
+
+  let existingUser = await prisma.user.findUnique({
+    where: { email: user.email },
+  });
+
+  if (!existingUser) {
+    existingUser = await createNewUser({
+      name: user.name,
+      email: user.email,
+      image: user.image,
+    });
+
+    if (!existingUser) {
+      throw new Error("User creation failed");
+    }
+
+    const userGroups = await prisma.groupUser.findMany({
+      where: { userId: existingUser.id },
+    });
+
+    if (userGroups.length === 0) {
+      await createUserGroup(existingUser.id, existingUser.name);
+    }
+  }
+
+  return true;
+};
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -35,10 +114,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("No credentials provided");
         }
 
-        const { email, password } = credentials as {
-          email: string;
-          password: string;
-        };
+        const { email, password } = credentials;
 
         const user = await prisma.user.findUnique({
           where: { email },
@@ -58,8 +134,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error("La cuenta no tiene contraseña");
         }
 
-        // Here you would normally check the password
-        // For example, using bcrypt to compare hashed passwords
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
           throw new Error("La contraseña es incorrecta");
@@ -93,64 +167,7 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ user, account }) {
       if (account?.provider === "google") {
-        if (!user.email) {
-          throw new Error("Email is required");
-        }
-
-        let existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-
-        if (!existingUser) {
-          // Create a new user if one doesn't exist
-          existingUser = await prisma.user.create({
-            data: {
-              name: user.name,
-              email: user.email,
-              image: user.image,
-              password: null,
-              emailVerified: null,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-              password: true,
-              emailVerified: true,
-              createdAt: true,
-              updatedAt: true,
-            },
-          });
-        }
-
-        if (!existingUser) {
-          throw new Error("User creation failed");
-        }
-
-        const userGroups = await prisma.groupUser.findMany({
-          where: { userId: existingUser.id },
-        });
-
-        if (userGroups.length === 0) {
-          // Create a new group for the user
-          const newGroup = await prisma.group.create({
-            data: {
-              name: `Sala de ${existingUser.name || "User"}`,
-              ownerId: existingUser.id,
-            },
-          });
-
-          // Associate the user with the new group
-          await prisma.groupUser.create({
-            data: {
-              userId: existingUser.id,
-              groupId: newGroup.id,
-            },
-          });
-        }
+        return handleGoogleSignIn(user);
       }
       return true;
     },

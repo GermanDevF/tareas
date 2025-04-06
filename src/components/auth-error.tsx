@@ -1,7 +1,8 @@
 "use client";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FileWarning } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 const AuthError = () => {
   const searchParams = useSearchParams();
@@ -9,33 +10,65 @@ const AuthError = () => {
 
   if (!error) return null;
 
-  const errorMessages: Record<string, string> = {
-    OAuthAccountNotLinked:
-      "Este correo ya está vinculado a otra cuenta. Inicia sesión con el mismo proveedor que usaste antes.",
-    CredentialsSignin:
-      "Credenciales incorrectas. Verifica tu correo y contraseña.",
-    Default: "Ocurrió un error al iniciar sesión. Inténtalo de nuevo.",
+  const errorMessages: Record<string, { title: string; message: string }> = {
+    OAuthAccountNotLinked: {
+      title: "Cuenta no vinculada",
+      message:
+        "Este correo ya está vinculado a otra cuenta. Por favor, inicia sesión con el mismo proveedor que usaste anteriormente.",
+    },
+    CredentialsSignin: {
+      title: "Credenciales incorrectas",
+      message:
+        "El correo electrónico o la contraseña son incorrectos. Por favor, verifica tus datos.",
+    },
+    OAuthSignin: {
+      title: "Error de autenticación",
+      message:
+        "Ocurrió un error al intentar iniciar sesión con el proveedor seleccionado.",
+    },
+    OAuthCallback: {
+      title: "Error de callback",
+      message:
+        "Ocurrió un error al procesar la respuesta del proveedor de autenticación.",
+    },
+    OAuthCreateAccount: {
+      title: "Error al crear cuenta",
+      message: "No se pudo crear una cuenta con el proveedor seleccionado.",
+    },
+    EmailCreateAccount: {
+      title: "Error al crear cuenta",
+      message:
+        "No se pudo crear una cuenta con el correo electrónico proporcionado.",
+    },
+    Callback: {
+      title: "Error de autenticación",
+      message: "Ocurrió un error durante el proceso de autenticación.",
+    },
+    EmailSignin: {
+      title: "Error de inicio de sesión",
+      message:
+        "Ocurrió un error al intentar iniciar sesión con correo electrónico.",
+    },
+    SessionRequired: {
+      title: "Sesión requerida",
+      message: "Por favor, inicia sesión para acceder a esta página.",
+    },
+    Default: {
+      title: "Error de autenticación",
+      message:
+        "Ocurrió un error inesperado durante el proceso de inicio de sesión.",
+    },
   };
 
-  const message =
+  const errorInfo =
     errorMessages[error as keyof typeof errorMessages] || errorMessages.Default;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-md text-center">
-        <h2 className="text-xl font-semibold text-red-600">
-          Error de autenticación
-        </h2>
-        <p className="mt-2 text-gray-700">{message}</p>
-        <div className="mt-4">
-          <Link
-            href="/login"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition">
-            Volver a intentar
-          </Link>
-        </div>
-      </div>
-    </div>
+    <Alert variant="destructive" className="mb-4">
+      <FileWarning className="h-4 w-4" />
+      <AlertTitle>{errorInfo.title}</AlertTitle>
+      <AlertDescription>{errorInfo.message}</AlertDescription>
+    </Alert>
   );
 };
 

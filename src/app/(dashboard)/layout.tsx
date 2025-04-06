@@ -24,7 +24,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
           </div>
           <ModeToggle />
         </header>
-        {children}
+        <main className="container mx-auto p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -77,6 +77,7 @@ async function createTask(req: NextRequest, userId: string) {
 }
 
 export async function GET(req: NextRequest) {
+  debugger;
   const session = await getServerSession(authOptions);
 
   const userId = session?.user?.id;

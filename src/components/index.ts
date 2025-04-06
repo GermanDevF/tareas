@@ -8,6 +8,8 @@ export * from "./groups/group-form";
 export * from "./groups/groups";
 export * from "./groups/loading-groups";
 export * from "./groups/no-groups";
+export * from "./lideres/lideres-form";
+export * from "./lideres/lideres-table";
 export * from "./login-button";
 export * from "./login-form";
 export * from "./logout-button";

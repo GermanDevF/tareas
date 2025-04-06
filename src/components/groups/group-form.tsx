@@ -92,8 +92,6 @@ export const GroupForm = ({ callback, group }: GroupFormProps) => {
 
   const memoizedIcons = useMemo(() => icons, [icons]);
 
-  console.log(pathname);
-
   async function onSubmit(
     data: GroupFormValues & { description: string | null }
   ) {

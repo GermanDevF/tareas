@@ -28,8 +28,6 @@ const GroupPage = async ({ params, searchParams }: GroupPageProps) => {
     sort?: string;
   };
 
-  console.log("searchParams", search?.filters?.split(","));
-
   const { id: _id } = await params;
 
   const [, id] = _id.split("__");
