@@ -3,13 +3,46 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
-const getTasksByGroup = async (groupId: string) => {
+const getTasksByGroup = async (groupId: string, userId: string) => {
   try {
+    // Primero verificar si el usuario tiene acceso al grupo
+    const group = await db.group.findFirst({
+      where: {
+        id: groupId,
+        OR: [{ ownerId: userId }, { users: { some: { userId: userId } } }],
+      },
+    });
+
+    if (!group) {
+      return NextResponse.json(
+        { message: "No tienes permiso para acceder a este grupo" },
+        { status: 403 }
+      );
+    }
+
+    // Si el usuario tiene acceso, obtener las tareas del grupo
     const tasks = await db.task.findMany({
       where: {
         groupId: groupId,
       },
+      include: {
+        type: true,
+        estado: true,
+        lideres: {
+          include: {
+            user: true,
+          },
+        },
+        programador: {
+          include: {
+            user: true,
+          },
+        },
+        ambiente: true,
+        proyecto: true,
+      },
     });
+
     return NextResponse.json(tasks, { status: 200 });
   } catch (error) {
     console.error("Error fetching tasks:", error);
@@ -39,5 +72,5 @@ export async function GET(
     );
   }
 
-  return getTasksByGroup(groupId);
+  return getTasksByGroup(groupId, userId);
 }

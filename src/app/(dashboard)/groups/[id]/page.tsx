@@ -1,120 +1,42 @@
-import { Group, GroupPageClient } from "@/components/tasks/group-page-client";
-import { db } from "@/lib/prisma";
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-
-interface GroupPageProps {
-  params: { id: string };
-  searchParams: {
-    filters?: string;
-    sort?: string;
-  };
-}
-
-async function getGroup(id: string) {
-  return await db.group.findUnique({
-    where: { id },
-    include: {
-      tasks: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          type: true,
-          estado: true,
-          group: {
-            select: {
-              name: true,
-            },
-          },
-          lideres: {
-            include: {
-              user: true,
-            },
-          },
-          programador: {
-            include: {
-              user: true,
-            },
-          },
-          ambiente: {
-            select: {
-              name: true,
-            },
-          },
-          proyecto: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      owner: {
-        include: {
-          ownedGroups: true,
-        },
-      },
-      users: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-              isAdmin: true,
-              groups: true,
-              ownedGroups: true,
-              tasks: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
-  });
-}
+import { GroupPageClient } from "@/components/tasks/group-page-client";
+import { getGroup } from "@/lib/actions/groups";
+import { getServerSession } from "@/lib/auth";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export async function generateMetadata({
   params,
-}: GroupPageProps): Promise<Metadata> {
-  const idParts = params.id.split("__");
-  const id = idParts.length > 1 ? idParts[1] : null;
-  if (!id) {
-    return {
-      title: "Grupo no encontrado",
-      description: "El grupo que buscas no existe",
-    };
-  }
-  const group = await getGroup(id);
-
-  if (!group) {
-    return {
-      title: "Grupo no encontrado",
-      description: "El grupo que buscas no existe",
-    };
-  }
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const _params = await params;
+  const group = await getGroup(_params.id.split("__")[1]);
 
   return {
-    title: group.name,
-    description: `Página del grupo ${group.name}`,
+    title: group
+      ? `${group.name} - Zoho lite`
+      : "Grupo no encontrado - Zoho lite",
+    description: group?.description || "Detalles del grupo",
   };
 }
 
 export default async function GroupPage({
   params,
-  searchParams,
-}: GroupPageProps) {
-  const idParts = params.id.split("__");
-  const id = idParts.length > 1 ? idParts[1] : null;
-  if (!id) {
-    notFound();
+}: {
+  params: { id: string };
+}) {
+  const session = await getServerSession();
+  if (!session?.user) {
+    redirect("/login");
   }
-  const group = await getGroup(id);
+
+  const _params = await params;
+
+  const group = await getGroup(_params.id.split("__")[1]);
 
   if (!group) {
-    notFound();
+    redirect("/groups");
   }
 
-  return <GroupPageClient group={group as unknown as Group} />;
+  return <GroupPageClient group={group} />;
 }

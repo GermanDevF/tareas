@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import AppSessionProvider from "@/providers/app-session-provider";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -13,7 +13,6 @@ export const metadata: Metadata = {
     apple: "/favicon.ico",
   },
   manifest: "/site.webmanifest",
-  themeColor: "#ffffff",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -22,6 +21,10 @@ export const metadata: Metadata = {
     google: "google-site-verification=6z5m1zZ9i8vX6W3xq7X2h4Qe5h0",
     yandex: "google-site-verification=6z5m1zZ9i8vX6W3xq7X2h4Qe5h0",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({

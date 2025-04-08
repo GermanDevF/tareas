@@ -1,86 +1,78 @@
 "use client";
 
-import Icon from "@/components/get-icon";
-import { DialogCreateTask } from "@/components/tasks/dialog-create-task";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui";
+import { TableCell, TableRow } from "@/components/ui";
+import { Task as PrismaTask } from "@prisma/client";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Github } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiltersDialog } from "./filters-dialog";
+import { GroupHeader } from "./group-header";
+import { GroupMembers } from "./group-members";
+import { GroupStats } from "./group-stats";
+import { GroupTasks } from "./group-tasks";
 
-export interface Group {
+type Task = PrismaTask & {
+  group: {
+    name: string;
+  };
+  ambiente?: {
+    name: string;
+  };
+  estado?: {
+    name: string;
+  };
+  proyecto?: {
+    name: string;
+  };
+  lideres?: {
+    user?: {
+      name: string;
+    };
+  };
+  programador?: {
+    user?: {
+      name: string;
+    };
+  };
+  type?: {
+    name: string;
+    color: string;
+  };
+};
+
+export type Group = {
   id: string;
   name: string;
-  icon: string;
-  description: string;
-  ownerId: string;
+  description: string | null;
   createdAt: Date;
-  updatedAt: Date;
-  tasks: Task[];
-  owner: Owner;
-  users: User[];
-}
-
-export interface User {
-  id: string;
-  userId: string;
-  groupId: string;
-  createdAt: Date;
-  user?: Owner;
-}
-
-export interface Owner {
-  id: string;
-  email: string;
-  name: string;
-  image: string;
-  ownedGroups: OwnedGroup[];
-  groups?: User[];
-  tasks?: Task[];
-}
-
-export interface OwnedGroup {
-  id: string;
-  name: string;
-  icon: string;
-  description: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  content?: string;
-  userId: string;
-  groupId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  type?: { name: string; color: string };
-  estado?: { name: string };
-  lideres?: { user: { name: string } };
-  programador?: { user: { name: string } };
-  ambiente?: { name: string };
-  proyecto?: { name: string };
-  claveZoho?: string;
-  branch?: string;
-  linkPr?: string;
-  startDate?: Date;
-  endDate?: Date;
-  prodDate?: Date;
-  validado?: boolean;
-  group: { name: string };
-}
+  owner: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    image: string | null;
+  };
+  users: {
+    user: {
+      id: string;
+      name: string | null;
+      email: string | null;
+      image: string | null;
+    };
+  }[];
+  tasks: {
+    id: string;
+    title: string;
+    type: {
+      name: string;
+    } | null;
+    estado: {
+      name: string;
+    } | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+};
 
 // Extract TaskRow component
 const TaskRow = ({ task }: { task: Task }) => {
@@ -94,11 +86,7 @@ const TaskRow = ({ task }: { task: Task }) => {
           ? "bg-emerald-800 hover:bg-emerald-700 transition-colors text-white"
           : "bg-red-900 hover:bg-red-800 transition-colors text-white"
       }`}
-      onClick={() =>
-        router.push(
-          `/groups/${task.group.name}__${task.groupId}/tasks/${task.title}__${task.id}`
-        )
-      }>
+      onClick={() => router.push(`tasks/${task.title}__${task.id}`)}>
       <TableCell className="font-medium">{task.title}</TableCell>
       <TableCell className="font-medium">
         {task.ambiente?.name || "-"}
@@ -149,54 +137,47 @@ const TaskRow = ({ task }: { task: Task }) => {
           ? format(new Date(task.prodDate), "dd/MM/yyyy", { locale: es })
           : "-"}
       </TableCell>
+      <TableCell className="whitespace-nowrap">
+        {task.devDate
+          ? format(new Date(task.devDate), "dd/MM/yyyy", { locale: es })
+          : "-"}
+      </TableCell>
     </TableRow>
   );
 };
 
-export const GroupPageClient = ({ group }: { group: Group }) => {
-  return (
-    <div className="w-full h-full space-y-6 p-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Icon iconName={group?.icon || "Users"} className="w-12 h-12" />
-          <div>
-            <h1 className="text-2xl font-bold">{group.name}</h1>
-            <p className="text-muted-foreground">{group.description}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <FiltersDialog />
-          <DialogCreateTask group={group} />
-        </div>
-      </div>
+interface GroupPageClientProps {
+  group: Group;
+}
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-medium">Título</TableHead>
-              <TableHead>Ambiente</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Proyecto</TableHead>
-              <TableHead>Líder</TableHead>
-              <TableHead>Programador</TableHead>
-              <TableHead>Clave Zoho</TableHead>
-              <TableHead>Branch</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>PR</TableHead>
-              <TableHead>Fecha de creación</TableHead>
-              <TableHead>Fecha de inicio</TableHead>
-              <TableHead>Fecha de fin</TableHead>
-              <TableHead>Fecha de producción</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {group.tasks.map((task) => (
-              <TaskRow key={task.id} task={task} />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+export function GroupPageClient({ group }: GroupPageClientProps) {
+  const totalTasks = group.tasks.length;
+  const completedTasks = group.tasks.filter(
+    (task) => task.estado?.name === "Completado"
+  ).length;
+  const pendingTasks = totalTasks - completedTasks;
+
+  return (
+    <div className="container mx-auto p-4 space-y-6">
+      <GroupHeader
+        id={group.id}
+        name={group.name}
+        description={group.description}
+      />
+
+      <GroupStats
+        totalTasks={totalTasks}
+        completedTasks={completedTasks}
+        pendingTasks={pendingTasks}
+      />
+
+      <GroupMembers owner={group.owner} members={group.users} />
+
+      <GroupTasks
+        groupId={group.id}
+        groupName={group.name}
+        tasks={group.tasks}
+      />
     </div>
   );
-};
+}

@@ -1,5 +1,5 @@
-import { CustomBreadcrumbs } from "@/components";
 import { AppSidebar } from "@/components/app-sidebar";
+import { CustomBreadcrumbsClient } from "@/components/custom-breadcrumbs-client";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -20,7 +20,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
-            <CustomBreadcrumbs />
+            <CustomBreadcrumbsClient />
           </div>
           <ModeToggle />
         </header>

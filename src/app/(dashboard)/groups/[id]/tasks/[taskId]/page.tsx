@@ -33,7 +33,8 @@ async function getTask(taskId: string) {
 }
 
 export default async function TaskPage({ params }: TaskPageProps) {
-  const idParts = params.taskId.split("__");
+  const _params = await params;
+  const idParts = _params.taskId.split("__");
 
   const id = idParts.length > 1 ? idParts[1] : null;
   if (!id) {
