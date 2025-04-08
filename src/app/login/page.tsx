@@ -1,4 +1,14 @@
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/components/login-form";
+import { Metadata, Viewport } from "next";
+
+export const metadata: Metadata = {
+  title: "Iniciar sesión",
+  description: "Inicia sesión en tu cuenta",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+};
 
 export default function LoginPage() {
   return (
@@ -7,5 +17,5 @@ export default function LoginPage() {
         <LoginForm />
       </div>
     </div>
-  )
+  );
 }

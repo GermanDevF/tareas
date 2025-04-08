@@ -20,6 +20,7 @@ export * from "./ambiente";
 export * from "./common";
 export * from "./estado";
 export * from "./lider";
+export * from "./programador";
 export * from "./proyecto";
 export * from "./tarea";
 export * from "./tipo-tarea";

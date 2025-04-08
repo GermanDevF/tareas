@@ -30,8 +30,8 @@ export const TipoDeTareaTable = ({
     if (result && result.success) {
       toast.success(result.success);
       onTipoDeTareaDeleted();
-    } else if (result && result.error) {
-      toast.error(result.error);
+    } else if (result && result.message) {
+      toast.error(result.message);
     }
   };
 

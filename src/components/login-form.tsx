@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import AuthError from "./auth-error";
 
@@ -51,9 +52,6 @@ export function LoginForm({
           <CardContent className="grid p-0 md:grid-cols-2">
             <div className="p-6 md:p-8 flex flex-col items-center text-center gap-6">
               <h1 className="text-2xl font-bold">Bienvenido de nuevo</h1>
-              <p className="text-muted-foreground text-balance">
-                Inicia sesión en tu cuenta de Acme Inc
-              </p>
 
               <form onSubmit={handleEmailLogin} className="w-full space-y-4">
                 <div className="space-y-2">
@@ -89,6 +87,10 @@ export function LoginForm({
                 <Separator className="flex-1" />
               </div>
 
+              <Button variant="outline" className="w-full" asChild>
+                <Link href="/register">¿No tienes una cuenta? Regístrate</Link>
+              </Button>
+
               <Button
                 variant="outline"
                 type="button"
@@ -122,7 +124,7 @@ export function LoginForm({
                 className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
                 width={500}
                 height={500}
-                priority
+                loading="lazy"
               />
             </div>
           </CardContent>

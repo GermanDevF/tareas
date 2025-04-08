@@ -27,7 +27,7 @@ export async function getProyectoById(id: string) {
   });
 }
 
-export async function createProyecto(prevState: State, formData: FormData) {
+export async function createProyecto(formData: FormData) {
   const validatedFields = ProyectoSchema.safeParse({
     name: formData.get("name"),
   });
@@ -96,7 +96,14 @@ export async function deleteProyecto(formData: FormData) {
       where: { id },
     });
   } catch (error) {
-    throw new Error("No se pudo eliminar el proyecto.");
+    console.error("Error al eliminar el proyecto:", error);
+    return {
+      message:
+        "Error al eliminar el proyecto. Por favor, verifica que el proyecto existe y que no está asociado a otras entidades.",
+      errors: {
+        general: [error instanceof Error ? error.message : "Error desconocido"],
+      },
+    };
   }
   revalidatePath("/catalogos/proyectos");
   redirect("/catalogos/proyectos");

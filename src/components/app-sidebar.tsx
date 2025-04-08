@@ -86,7 +86,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
         },
         {
           name: "Desarrolladores",
-          url: "/catalogos/desarrolladores",
+          url: "/catalogos/programadores",
           icon: BrainCircuit,
         },
       ],

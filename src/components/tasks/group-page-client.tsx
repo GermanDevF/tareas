@@ -1,27 +1,21 @@
 "use client";
 
 import Icon from "@/components/get-icon";
+import { DialogCreateTask } from "@/components/tasks/dialog-create-task";
 import {
-  Button,
-  Checkbox,
-  Dialog,
-  DialogContent,
-  DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-  ToggleGroup,
-  ToggleGroupItem,
 } from "@/components/ui";
-import { ArrowUpDown, ListFilterPlus } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Github } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FiltersDialog } from "./filters-dialog";
 
 export interface Group {
   id: string;
@@ -72,205 +66,137 @@ export interface Task {
   groupId: string;
   createdAt: Date;
   updatedAt: Date;
+  type?: { name: string; color: string };
+  estado?: { name: string };
+  lideres?: { user: { name: string } };
+  programador?: { user: { name: string } };
+  ambiente?: { name: string };
+  proyecto?: { name: string };
+  claveZoho?: string;
+  branch?: string;
+  linkPr?: string;
+  startDate?: Date;
+  endDate?: Date;
+  prodDate?: Date;
+  validado?: boolean;
+  group: { name: string };
 }
 
-interface SortCriteria {
-  column: keyof Task;
-  direction: "asc" | "desc";
-}
-
-export const GroupPageClient = ({ group }: { group: Group }) => {
-  const searchParams = useSearchParams();
-  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
-  const [selectedFilters, setSelectedFilters] = useState<Set<string>>(
-    new Set(["bold", "italic", "strikethrough"])
-  );
-  const [open, setOpen] = useState<boolean>(false);
-  const [sortCriteria, setSortCriteria] = useState<SortCriteria[]>([
-    { column: "createdAt", direction: "asc" },
-  ]); // Inicialmente ordenado por fecha de creación ascendente
-  const [sortedTasks, setSortedTasks] = useState<Task[]>(group.tasks);
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    const filtersFromURL = new Set(params.get("filters")?.split(",") || []);
-    setSelectedFilters(filtersFromURL);
-  }, [searchParams]);
-
-  useEffect(() => {
-    sortTasks();
-  }, [group.tasks, sortCriteria]);
-
-  const toggleTaskSelection = (taskId: string) => {
-    setSelectedTasks((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(taskId)) {
-        newSet.delete(taskId);
-      } else {
-        newSet.add(taskId);
-      }
-      return newSet;
-    });
-  };
-
-  const updateFiltersInURL = (newFilters: Set<string>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (newFilters.size > 0) {
-      params.set("filters", Array.from(newFilters).join(","));
-    } else {
-      params.delete("filters");
-    }
-    window.history.pushState(null, "", `?${params.toString()}`);
-  };
-
-  const handleFilterChange = (value: string[]) => {
-    const newSet = new Set(value);
-    setSelectedFilters(newSet);
-    updateFiltersInURL(newSet);
-  };
-
-  const sortTasks = () => {
-    const sorted = [...group.tasks].sort((a, b) => {
-      for (const criterion of sortCriteria) {
-        let aValue = a[criterion.column];
-        let bValue = b[criterion.column];
-
-        if (typeof aValue === "string" && typeof bValue === "string") {
-          aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
-        }
-
-        if (!aValue || !bValue) return 0;
-
-        if (aValue < bValue) {
-          return criterion.direction === "asc" ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return criterion.direction === "asc" ? 1 : -1;
-        }
-      }
-      return 0;
-    });
-    setSortedTasks(sorted);
-  };
-
-  const handleSort = (column: keyof Task) => {
-    setSortCriteria((prevCriteria) => {
-      const existingCriterion = prevCriteria.find(
-        (criterion) => criterion.column === column
-      );
-
-      if (existingCriterion) {
-        // Cambiar la dirección del criterio existente
-        return prevCriteria.map((criterion) =>
-          criterion.column === column
-            ? {
-                ...criterion,
-                direction: criterion.direction === "asc" ? "desc" : "asc",
-              }
-            : criterion
-        );
-      } else {
-        // Agregar un nuevo criterio al principio de la lista
-        return [{ column, direction: "asc" }, ...prevCriteria];
-      }
-    });
-  };
+// Extract TaskRow component
+const TaskRow = ({ task }: { task: Task }) => {
+  const router = useRouter();
 
   return (
-    <div className="p-6">
-      <div className="w-full flex mb-4 items-center gap-4">
-        <Icon iconName={group?.icon || "Users"} className="w-12 h-12 mb-4" />
-        <h1 className="text-2xl font-bold mb-4">{group.name}</h1>
+    <TableRow
+      key={task.id}
+      className={`cursor-pointer ${
+        task.validado
+          ? "bg-emerald-800 hover:bg-emerald-700 transition-colors text-white"
+          : "bg-red-900 hover:bg-red-800 transition-colors text-white"
+      }`}
+      onClick={() =>
+        router.push(
+          `/groups/${task.group.name}__${task.groupId}/tasks/${task.title}__${task.id}`
+        )
+      }>
+      <TableCell className="font-medium">{task.title}</TableCell>
+      <TableCell className="font-medium">
+        {task.ambiente?.name || "-"}
+      </TableCell>
+      <TableCell className="font-medium">{task.estado?.name || "-"}</TableCell>
+      <TableCell>{task.proyecto?.name || "-"}</TableCell>
+      <TableCell>{task.lideres?.user?.name || "-"}</TableCell>
+      <TableCell>{task.programador?.user?.name || "-"}</TableCell>
+      <TableCell>{task.claveZoho || "-"}</TableCell>
+      <TableCell>{task.branch || "-"}</TableCell>
+      <TableCell>
+        {task.type ? (
+          <div className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: task.type.color }}
+            />
+            <span>{task.type.name}</span>
+          </div>
+        ) : (
+          "-"
+        )}
+      </TableCell>
+      <TableCell>
+        {task?.linkPr ? (
+          <Link href={task.linkPr} target="_blank" rel="noopener noreferrer">
+            <Github className="size-5 hover:text-blue-500 " />
+          </Link>
+        ) : (
+          "-"
+        )}
+      </TableCell>
+      <TableCell className="whitespace-nowrap">
+        {format(new Date(task.createdAt), "dd/MM/yyyy", { locale: es })}
+      </TableCell>
+      <TableCell className="whitespace-nowrap">
+        {task.startDate
+          ? format(new Date(task.startDate), "dd/MM/yyyy", { locale: es })
+          : "-"}
+      </TableCell>
+      <TableCell className="whitespace-nowrap">
+        {task.endDate
+          ? format(new Date(task.endDate), "dd/MM/yyyy", { locale: es })
+          : "-"}
+      </TableCell>
+      <TableCell className="whitespace-nowrap">
+        {task.prodDate
+          ? format(new Date(task.prodDate), "dd/MM/yyyy", { locale: es })
+          : "-"}
+      </TableCell>
+    </TableRow>
+  );
+};
+
+export const GroupPageClient = ({ group }: { group: Group }) => {
+  return (
+    <div className="w-full h-full space-y-6 p-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
+          <Icon iconName={group?.icon || "Users"} className="w-12 h-12" />
+          <div>
+            <h1 className="text-2xl font-bold">{group.name}</h1>
+            <p className="text-muted-foreground">{group.description}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <FiltersDialog />
+          <DialogCreateTask group={group} />
+        </div>
       </div>
-      <p>{group.description}</p>
 
-      {/* Filters */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline">
-            <ListFilterPlus />
-            <span className="ml-2">Filtrar tareas</span>
-          </Button>
-        </DialogTrigger>
-        <DialogPortal>
-          <DialogOverlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-overlayShow z-50" />
-          <DialogContent className="fixed top-[50%] left-[50%] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] rounded-lg border p-6 shadow-lg data-[state=open]:animate-contentShow z-50 ">
-            <DialogTitle className="text-lg font-medium">Filtros</DialogTitle>
-            <ToggleGroup
-              type="multiple"
-              value={Array.from(selectedFilters)}
-              onValueChange={handleFilterChange}
-              className="flex mt-4">
-              <ToggleGroupItem value="name" aria-label="Toggle name">
-                Nombre
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="description"
-                aria-label="Toggle description">
-                Descripción
-              </ToggleGroupItem>
-            </ToggleGroup>
-          </DialogContent>
-        </DialogPortal>
-      </Dialog>
-
-      {group.tasks.length > 0 ? (
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted">
-              <TableHead scope="col" className="w-[1%]">
-                <Checkbox
-                  aria-label="Seleccionar todas las tareas"
-                  checked={selectedTasks.size === group.tasks.length}
-                  onCheckedChange={(checked) => {
-                    setSelectedTasks(
-                      checked
-                        ? new Set(group.tasks.map((task) => task.id))
-                        : new Set()
-                    );
-                  }}
-                />
-              </TableHead>
-              <TableHead scope="col" onClick={() => handleSort("title")}>
-                Nombre <ArrowUpDown className="inline-block" />
-              </TableHead>
-              <TableHead scope="col" onClick={() => handleSort("content")}>
-                Descripción <ArrowUpDown className="inline-block" />
-              </TableHead>
-              <TableHead scope="col" onClick={() => handleSort("createdAt")}>
-                Fecha de Creación <ArrowUpDown className="inline-block" />
-              </TableHead>
+            <TableRow>
+              <TableHead className="font-medium">Título</TableHead>
+              <TableHead>Ambiente</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Proyecto</TableHead>
+              <TableHead>Líder</TableHead>
+              <TableHead>Programador</TableHead>
+              <TableHead>Clave Zoho</TableHead>
+              <TableHead>Branch</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>PR</TableHead>
+              <TableHead>Fecha de creación</TableHead>
+              <TableHead>Fecha de inicio</TableHead>
+              <TableHead>Fecha de fin</TableHead>
+              <TableHead>Fecha de producción</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedTasks.map((task) => (
-              <TableRow key={task.id}>
-                <TableCell>
-                  <Checkbox
-                    aria-label={`Seleccionar tarea: ${task.title}`}
-                    checked={selectedTasks.has(task.id)}
-                    onCheckedChange={() => toggleTaskSelection(task.id)}
-                  />
-                </TableCell>
-                <TableCell>{task.title}</TableCell>
-                <TableCell>{task.content || "Sin descripción"}</TableCell>
-                <TableCell>
-                  {new Date(task.createdAt).toLocaleDateString("es-ES")}
-                </TableCell>
-              </TableRow>
+            {group.tasks.map((task) => (
+              <TaskRow key={task.id} task={task} />
             ))}
           </TableBody>
         </Table>
-      ) : (
-        <p>No hay tareas en este grupo.</p>
-      )}
-
-      {selectedTasks.size > 0 && (
-        <p className="mt-4" aria-live="polite">
-          Tareas seleccionadas: {selectedTasks.size}
-        </p>
-      )}
+      </div>
     </div>
   );
 };

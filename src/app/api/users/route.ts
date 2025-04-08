@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function GET(req: NextRequest) {
-  // debugger;
   const { searchParams } = new URL(req.url);
   const excludeLeaders = searchParams.get("excludeLeaders");
   const session = await getServerSession(authOptions);

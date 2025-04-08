@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { XIcon } from "lucide-react";
 import Link from "next/link";
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { createProyecto, type State } from "../actions";
 
 interface CreateProjectDialogProps {
@@ -23,7 +23,7 @@ interface CreateProjectDialogProps {
 
 export function CreateProjectDialog({ isOpen }: CreateProjectDialogProps) {
   const initialState = { message: "", errors: {} } as State;
-  const [state, dispatch] = useFormState(createProyecto, initialState);
+  const [state, dispatch] = useActionState(createProyecto, initialState);
 
   return (
     <Dialog open={isOpen} modal>

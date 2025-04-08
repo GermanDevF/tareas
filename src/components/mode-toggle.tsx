@@ -1,8 +1,5 @@
 "use client";
 
-import { useCallback } from "react";
-import { Moon, MoonIcon, Sun, Terminal } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +7,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Moon, MoonIcon, Sun, Terminal } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useCallback } from "react";
+
+interface ThemeOption {
+  mode: string;
+  label: string;
+  icon: React.ComponentType;
+}
+
+const THEME_OPTIONS: ThemeOption[] = [
+  { mode: "light", label: "Claro", icon: Sun },
+  { mode: "dark", label: "Oscuro", icon: MoonIcon },
+  { mode: "system", label: "Sistema", icon: Terminal },
+];
 
 export function ModeToggle() {
   const { setTheme, theme } = useTheme();
@@ -18,6 +30,15 @@ export function ModeToggle() {
   const handleThemeChange = useCallback(
     (mode: string) => setTheme(mode),
     [setTheme]
+  );
+
+  const renderMenuItem = ({ mode, label, icon: Icon }: ThemeOption) => (
+    <DropdownMenuItem
+      key={mode}
+      className={theme === mode ? "bg-muted" : ""}
+      onClick={() => handleThemeChange(mode)}>
+      <Icon /> {label}
+    </DropdownMenuItem>
   );
 
   return (
@@ -36,21 +57,7 @@ export function ModeToggle() {
 
       {/* Expanded */}
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          className={theme === "light" ? "bg-muted" : ""}
-          onClick={() => handleThemeChange("light")}>
-          <Sun /> Claro
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className={theme === "dark" ? "bg-muted" : ""}
-          onClick={() => handleThemeChange("dark")}>
-          <MoonIcon /> Oscuro
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className={theme === "system" ? "bg-muted" : ""}
-          onClick={() => handleThemeChange("system")}>
-          <Terminal /> Sistema
-        </DropdownMenuItem>
+        {THEME_OPTIONS.map(renderMenuItem)}
       </DropdownMenuContent>
     </DropdownMenu>
   );

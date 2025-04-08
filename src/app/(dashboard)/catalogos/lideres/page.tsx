@@ -1,3 +1,4 @@
+import { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { getAllLideres, getAvailableUsers } from "./actions";
 import { LiderContent } from "./components/lider-content";
@@ -11,30 +12,32 @@ interface PageProps {
   searchParams: SearchParams;
 }
 
-async function LiderPageContent({ searchParams }: PageProps) {
+export const metadata: Metadata = {
+  title: "Líderes",
+  description: "Gestiona los líderes del sistema",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+};
+
+export default async function LiderPage({
+  searchParams: { isCreateLiderModalOpen, deleteId },
+}: PageProps) {
   const [lideres, availableUsers] = await Promise.all([
     getAllLideres(),
     getAvailableUsers(),
   ]);
 
-  const isCreateModalOpen = searchParams?.isCreateLiderModalOpen === "true";
-  const deleteId = searchParams?.deleteId;
-
-  return (
-    <LiderContent
-      lideres={lideres}
-      availableUsers={availableUsers}
-      isCreateModalOpen={isCreateModalOpen}
-      deleteId={deleteId}
-    />
-  );
-}
-
-export default async function LiderPage({ searchParams }: PageProps) {
   return (
     <div className="flex flex-col gap-4">
       <Suspense fallback={<div>Cargando...</div>}>
-        <LiderPageContent searchParams={searchParams} />
+        <LiderContent
+          lideres={lideres}
+          availableUsers={availableUsers}
+          isCreateModalOpen={isCreateLiderModalOpen === "true"}
+          deleteId={deleteId}
+        />
       </Suspense>
     </div>
   );

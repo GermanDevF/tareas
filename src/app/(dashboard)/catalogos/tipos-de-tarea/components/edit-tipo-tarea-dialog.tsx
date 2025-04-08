@@ -94,10 +94,9 @@ export function EditTipoTareaDialog({
                   name="color"
                   type="color"
                   defaultValue={tipo.color}
-                  className="h-10 px-3 py-2 w-20"
+                  className="h-10 px-3 py-2 w-full"
                   aria-describedby="color-error"
                 />
-                <span className="text-sm font-mono">{tipo.color}</span>
               </div>
               {state.errors?.color && (
                 <p id="color-error" className="text-sm text-destructive">

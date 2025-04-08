@@ -40,7 +40,7 @@ const catalogItems = [
     description: "Gestiona los estados de tus proyectos",
   },
   {
-    href: "/catalogos/desarrolladores",
+    href: "/catalogos/programadores",
     icon: BrainCircuit,
     label: "Desarrolladores",
     description: "Gestiona los desarrolladores de tu organización",

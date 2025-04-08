@@ -27,7 +27,6 @@ export const FormAgregarProyecto = () => {
   });
 
   const onSubmit = async (data: ProyectoFormValues) => {
-    debugger;
     const formData = new FormData();
     formData.append("name", data.name);
     const result = await createProyecto(formData);

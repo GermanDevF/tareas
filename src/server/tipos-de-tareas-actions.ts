@@ -11,47 +11,86 @@ export async function createTipoDeTarea(
   values: z.infer<typeof tipoDeTareaSchema>
 ) {
   const validatedFields = tipoDeTareaSchema.safeParse(values);
+  let output = {
+    success: "Tipo de tarea creado",
+    message: "",
+    errors: {},
+  };
 
   if (!validatedFields.success) {
-    return { error: "Campos no válidos" };
+    output.message = "Campos no válidos";
+    output.errors = validatedFields.error.flatten().fieldErrors;
+    return output;
   }
 
   try {
     await db.tipoDeTarea.create({ data: validatedFields.data });
-    revalidatePath("/catalogos/tipos-de-tarea");
-    return { success: "Tipo de tarea creado" };
+    output.success = "Tipo de tarea creado";
   } catch (error) {
-    return { error: "Error al crear el tipo de tarea" };
+    output.message = "Error al crear el tipo de tarea";
+    output.errors = {
+      general: [error instanceof Error ? error.message : "Error desconocido"],
+    };
   }
+
+  revalidatePath("/catalogos/tipos-de-tarea");
+  return output;
 }
 
 export async function updateTipoDeTarea(
   id: string,
   values: z.infer<typeof tipoDeTareaSchema>
 ) {
+  let output = {
+    success: "Tipo de tarea actualizado",
+    message: "",
+    errors: {},
+  };
   const validatedFields = tipoDeTareaSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Campos no válidos" };
+    output.message = "Campos no válidos";
+    output.errors = validatedFields.error.flatten().fieldErrors;
+    return output;
   }
 
   try {
     await db.tipoDeTarea.update({ where: { id }, data: validatedFields.data });
     revalidatePath("/catalogos/tipos-de-tarea");
-    return { success: "Tipo de tarea actualizado" };
+    output.success = "Tipo de tarea actualizado";
   } catch (error) {
-    return { error: "Error al actualizar el tipo de tarea" };
+    output.message = "Error al actualizar el tipo de tarea";
+    output.errors = {
+      general: [error instanceof Error ? error.message : "Error desconocido"],
+    };
   }
+
+  revalidatePath("/catalogos/tipos-de-tarea");
+  return output;
 }
 
 export async function deleteTipoDeTarea(id: string) {
+  let output = {
+    success: "Tipo de tarea eliminado",
+    message: "",
+    errors: {},
+  };
   try {
     await db.tipoDeTarea.delete({ where: { id } });
-    revalidatePath("/catalogos/tipos-de-tarea");
-    return { success: "Tipo de tarea eliminado" };
+    output.success = "Tipo de tarea eliminado";
   } catch (error) {
-    return { error: "Error al eliminar el tipo de tarea" };
+    console.error("Error al eliminar el tipo de tarea:", error);
+    output = {
+      success: "",
+      message:
+        "Error al eliminar el tipo de tarea. Por favor, verifica que el tipo de tarea existe y que no está asociado a otras entidades.",
+      errors: {
+        general: [error instanceof Error ? error.message : "Error desconocido"],
+      },
+    };
   }
+  revalidatePath("/catalogos/tipos-de-tarea");
+  return output;
 }
 
 export async function getAllTipoDeTarea() {

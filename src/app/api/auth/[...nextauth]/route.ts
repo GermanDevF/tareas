@@ -92,7 +92,42 @@ const handleGoogleSignIn = async (user: any) => {
     }
   }
 
+  // Nueva lógica para usuarios con correo de dominio sigob
+  if (user.email.endsWith("@sigob")) {
+    await createSIGOBGroupIfNotExists();
+    await assignUserToSIGOBGroup(existingUser.id);
+  }
+
   return true;
+};
+
+const createSIGOBGroupIfNotExists = async () => {
+  const existingGroup = await prisma.group.findFirst({
+    where: { name: "SIGOB" },
+  });
+
+  if (!existingGroup) {
+    await prisma.group.create({
+      data: {
+        name: "SIGOB",
+      },
+    });
+  }
+};
+
+const assignUserToSIGOBGroup = async (userId: string) => {
+  const sigobGroup = await prisma.group.findFirst({
+    where: { name: "SIGOB" },
+  });
+
+  if (sigobGroup) {
+    await prisma.groupUser.create({
+      data: {
+        userId,
+        groupId: sigobGroup.id,
+      },
+    });
+  }
 };
 
 export const authOptions: NextAuthOptions = {

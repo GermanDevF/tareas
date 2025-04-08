@@ -88,10 +88,10 @@ model Group {
   name        String
   icon        String?
   description String?
-  ownerId     String
+  ownerId     String?
 
   users GroupUser[]
-  owner User        @relation(fields: [ownerId], references: [id], name: "GroupOwner")
+  owner User?        @relation(fields: [ownerId], references: [id], name: "GroupOwner")
   tasks Task[]
 
   @@map("groups")

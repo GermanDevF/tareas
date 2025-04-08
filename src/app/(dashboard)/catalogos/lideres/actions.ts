@@ -138,9 +138,13 @@ export async function deleteLider(
       },
     });
   } catch (error) {
+    console.error("Error al eliminar el líder:", error);
     return {
-      message: "Error al eliminar el líder",
-      errors: {},
+      message:
+        "Error al eliminar el líder. Por favor, verifica que el líder existe y que no está asociado a otras entidades.",
+      errors: {
+        general: [error instanceof Error ? error.message : "Error desconocido"],
+      },
     };
   }
 

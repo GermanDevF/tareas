@@ -1,14 +1,24 @@
 import { Card, CardContent, Skeleton } from "@/components/ui";
 
+interface SkeletonItemProps {
+  width: string;
+  height: string;
+  className?: string;
+}
+
+function SkeletonItem({ width, height, className = "" }: SkeletonItemProps) {
+  return <Skeleton className={`h-${height} w-${width} ${className}`} />;
+}
+
 function UserProfileSkeleton() {
   return (
     <Card>
       <CardContent>
-        <Skeleton className="h-4 w-[250px] mb-2" />
-        <Skeleton className="h-4 w-[200px] mb-1" />
-        <Skeleton className="h-4 w-[200px] mb-1" />
-        <Skeleton className="h-4 w-[200px] mb-1" />
-        <Skeleton className="h-4 w-[200px]" />
+        <SkeletonItem width="[250px]" height="4" className="mb-2" />
+        <SkeletonItem width="[200px]" height="4" className="mb-1" />
+        <SkeletonItem width="[200px]" height="4" className="mb-1" />
+        <SkeletonItem width="[200px]" height="4" className="mb-1" />
+        <SkeletonItem width="[200px]" height="4" />
       </CardContent>
     </Card>
   );
@@ -18,16 +28,16 @@ function UserGroupsSkeleton() {
   return (
     <Card>
       <CardContent>
-        <Skeleton className="h-4 w-[250px] mb-2" />
+        <SkeletonItem width="[250px]" height="4" className="mb-2" />
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="mb-2 flex justify-between">
             <div className="flex items-center">
-              <Skeleton className="h-6 w-6 mr-2" />
-              <Skeleton className="h-4 w-[150px]" />
+              <SkeletonItem width="6" height="6" className="mr-2" />
+              <SkeletonItem width="[150px]" height="4" />
             </div>
             <div className="flex justify-end gap-2">
-              <Skeleton className="h-8 w-[100px]" />
-              <Skeleton className="h-8 w-[100px]" />
+              <SkeletonItem width="[100px]" height="8" />
+              <SkeletonItem width="[100px]" height="8" />
             </div>
           </div>
         ))}
@@ -40,11 +50,11 @@ function UserTasksSkeleton() {
   return (
     <Card>
       <CardContent>
-        <Skeleton className="h-4 w-[250px] mb-2" />
+        <SkeletonItem width="[250px]" height="4" className="mb-2" />
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="mb-2">
-            <Skeleton className="h-4 w-[200px] mb-1" />
-            <Skeleton className="h-4 w-[150px]" />
+            <SkeletonItem width="[200px]" height="4" className="mb-1" />
+            <SkeletonItem width="[150px]" height="4" />
           </div>
         ))}
       </CardContent>

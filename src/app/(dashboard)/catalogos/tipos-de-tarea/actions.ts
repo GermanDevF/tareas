@@ -131,8 +131,13 @@ export async function deleteTipoDeTarea(
       where: { id },
     });
   } catch (error) {
+    console.error("Error al eliminar el tipo de tarea:", error);
     return {
-      message: "Error de base de datos: No se pudo eliminar el tipo de tarea.",
+      message:
+        "Error al eliminar el tipo de tarea. Por favor, verifica que el tipo de tarea existe y que no está asociado a otras entidades.",
+      errors: {
+        name: [error instanceof Error ? error.message : "Error desconocido"],
+      },
     };
   }
 
